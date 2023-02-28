@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Trax.API.Data;
 using Trax.API.Models;
 
 namespace Trax.API.Controllers
@@ -12,44 +13,42 @@ namespace Trax.API.Controllers
     [Route("api/[controller]")]
     public class CarroController : ControllerBase
     {
-        public IEnumerable<Carro> carros = new Carro[] {
-            new Carro(1, "F40", "Ferrari", 1984, "f40.png"),
-            new Carro(2, "F1", "McLaren", 1990, "f1.png"),
-        };
+        private readonly DataContext _dataContext;
+        public CarroController(DataContext context)
+        {
+            _dataContext = context;
+        }
+
         [HttpGet]
         public IEnumerable<Carro> Get()
         {
-            return carros;
+            return _dataContext.Carros;
         }
 
-        [HttpPost]
+        [HttpGet]
+        [Route("{id}")]
+        public Carro GetById(int id)
+        {
+            return _dataContext.Carros.Where(x => x.Id == id).FirstOrDefault();
+        }
+
+        [HttpPost]  
         public IEnumerable<Carro> Post(int id, string nome, string marca, int ano, string img)
         {
-            carros.Append(new Carro(id, nome, marca, ano, img));
-            return carros;
+            _dataContext.Add(new Carro(id, nome, marca, ano, img));
+            return _dataContext.Carros;
         }
 
         [HttpPut]
-        public IEnumerable<Carro> Put(int id, string nome, string marca, int? ano = null, string img)
+        public IEnumerable<Carro> Put(int id, string nome, string marca, string img, int? ano = null)
         {
-            var carro = carros.Where(x => x.Id == id).FirstOrDefault();
-
-            if (carro != null) {
-                if (nome != null) carro.Nome = nome;
-                if (marca != null) carro.Marca = marca;
-                if (ano != null) carro.Ano = ano.Value;
-                if (img != null) carro.Img = img;
-            }
-
-            return carros;
+            return _dataContext.Carros;
         }
 
         [HttpDelete]
         public IEnumerable<Carro> Delete(int id)
         {
-            var newCarros = carros.Where(x => x.Id != id);
-
-            return newCarros;
+            return _dataContext.Carros;
         }
     }
 }
